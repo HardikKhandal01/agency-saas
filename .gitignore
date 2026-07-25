@@ -1,0 +1,56 @@
+# ========================
+# Node & Frontend (React)
+# ========================
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+.npm/
+
+# ========================
+# Python & Backend (FastAPI)
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+backend/venv/
+backend/env/
+backend/.pytest_cache/
+backend/alembic/versions/*
+venv/
+env/
+
+# ========================
+# Database & Uploads
+# ========================
+*.sqlite3
+*.db
+backend/database/*.db
+backend/uploads/
+backend/media/
+
+# ========================
+# Environment Variables & Secrets
+# ========================
+.env
+.env.production
+.env.local
+*.pem
+
+# ========================
+# OS & Editor Files
+# ========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ========================
+# Node & Frontend (React)
+# ========================
+node_modules/
+dist/
+.env
