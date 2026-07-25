@@ -44,7 +44,7 @@ const AIStudio = () => {
 
     try {
       const enrichedTopic = `[Brand Context: ${brandMemory}] Task: ${textForm.topic}`;
-      const response = await axios.post('http://127.0.0.1:8000/api/v1/ai/generate', {
+      const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/', {
         topic: enrichedTopic,
         content_type: textForm.type,
         tone: textForm.tone

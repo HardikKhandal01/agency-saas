@@ -26,7 +26,7 @@ const Auth = () => {
         formData.append('username', email);
         formData.append('password', password);
 
-        const response = await axios.post('http://127.0.0.1:8000/api/v1/auth/login', formData, {
+        const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/', formData, {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
@@ -38,7 +38,7 @@ const Auth = () => {
         
       } else {
         // Signup expects JSON body
-        await axios.post('http://127.0.0.1:8000/api/v1/auth/signup', {
+        await axios.post('https://agency-saas-backend-2flg.onrender.com/', {
           email: email,
           full_name: fullName,
           password: password,

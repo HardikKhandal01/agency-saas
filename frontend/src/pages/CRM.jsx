@@ -20,7 +20,7 @@ const CRM = () => {
   const fetchLeads = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('http://127.0.0.1:8000/api/v1/leads/', {
+      const response = await axios.get('https://agency-saas-backend-2flg.onrender.com/', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLeads(response.data);
@@ -41,7 +41,7 @@ const CRM = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post('http://127.0.0.1:8000/api/v1/leads/', formData, {
+      await axios.post('https://agency-saas-backend-2flg.onrender.com/', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
