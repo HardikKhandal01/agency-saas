@@ -40,7 +40,8 @@ const Pricing = () => {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px', alignItems: 'center' }}>
+        {/* Inline Grid hata kar className="pricing-grid" lagaya hai */}
+        <div className="pricing-grid">
           {plans.map((plan, index) => (
             <div key={index} className="glass-panel" style={{ 
               padding: '40px', 

@@ -664,3 +664,43 @@ body {
   border: none;
   cursor: pointer;
 }
+/* =========================================
+   📱 MOBILE RESPONSIVENESS FIXES 
+   ========================================= */
+
+/* Pricing Grid - Desktop par 3 columns, Mobile par 1 column */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  align-items: center;
+}
+
+/* Navbar Links - Desktop par dikhenge, Mobile par chhup jayenge taaki scroll na aaye */
+.nav-links {
+  display: flex;
+  gap: 24px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .pricing-grid {
+    grid-template-columns: 1fr; /* Mobile me 1 column */
+    gap: 24px;
+  }
+  
+  .nav-links {
+    display: none; /* Mobile me beech wale links hide kar denge clean look ke liye */
+  }
+
+  .hero-buttons {
+    flex-direction: column; /* Hero buttons stack honge */
+    width: 100%;
+  }
+
+  .hero-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+}
