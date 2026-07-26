@@ -26,19 +26,20 @@ const Auth = () => {
         formData.append('username', email);
         formData.append('password', password);
 
-        const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/', formData, {
+        // FIX 1: URL ke aage '/api/auth/login' add kiya
+        const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/api/auth/login', formData, {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
         // Token save karna aur Dashboard pe bhejna
         localStorage.setItem('access_token', response.data.access_token);
         localStorage.setItem('user_role', response.data.user_role);
-        localStorage.setItem('isLoggedIn', 'true'); // NEW LOGIC ADDED HERE
+        localStorage.setItem('isLoggedIn', 'true');
         navigate('/dashboard'); // Redirect to dashboard after login
         
       } else {
-        // Signup expects JSON body
-        await axios.post('https://agency-saas-backend-2flg.onrender.com/', {
+        // FIX 2: URL ke aage '/api/auth/signup' add kiya aur body sahi ki
+        await axios.post('https://agency-saas-backend-2flg.onrender.com/api/auth/signup', {
           email: email,
           full_name: fullName,
           password: password,
