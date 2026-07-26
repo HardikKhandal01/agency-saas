@@ -27,7 +27,7 @@ const Auth = () => {
         formData.append('password', password);
 
         // FIX 1: URL ke aage '/api/auth/login' add kiya
-        const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/api/auth/login', formData, {
+        const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/auth/login', formData, {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
@@ -39,7 +39,7 @@ const Auth = () => {
         
       } else {
         // FIX 2: URL ke aage '/api/auth/signup' add kiya aur body sahi ki
-        await axios.post('https://agency-saas-backend-2flg.onrender.com/api/auth/signup', {
+        await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/auth/signup', {
           email: email,
           full_name: fullName,
           password: password,
