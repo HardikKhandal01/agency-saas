@@ -1,257 +1,170 @@
 import React, { useState } from 'react';
-import { Bot, Sparkles, Image as ImageIcon, Upload, Save, Zap, RefreshCw, Copy, Check } from 'lucide-react';
-import axios from 'axios';
+import { Bot, Settings, UploadCloud, Sparkles, X, Save, Image, Type } from 'lucide-react';
 
 const AIStudio = () => {
-  // Tabs & Settings State
-  const [activeTab, setActiveTab] = useState('text');
-  const [brandMemory, setBrandMemory] = useState('We are a premium digital marketing agency targeting B2B clients. Keep the tone highly professional, concise, and persuasive.');
-  const [isMemorySaved, setIsMemorySaved] = useState(false);
-  
-  // Vision (Upload) State
-  const [uploadedImage, setUploadedImage] = useState(null);
+  const [activeTab, setActiveTab] = useState('text'); // 'text' or 'image'
+  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiOutput, setAiOutput] = useState('');
 
-  // Text Generator State
-  const [textForm, setTextForm] = useState({ type: 'Google Ad Copy', tone: 'Professional', topic: '' });
-  const [textResult, setTextResult] = useState('');
-  const [isLoadingText, setIsLoadingText] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-
-  // Image Generator State (UPDATED)
-  const [imagePrompt, setImagePrompt] = useState('');
-  const [imageResult, setImageResult] = useState('');
-  const [isLoadingImage, setIsLoadingImage] = useState(false);
-  const [imageError, setImageError] = useState(false); // Naya error state
-
-  const handleSaveMemory = (e) => {
+  // Dummy function to simulate AI generation
+  const handleGenerate = (e) => {
     e.preventDefault();
-    setIsMemorySaved(true);
-    setTimeout(() => setIsMemorySaved(false), 2000);
-  };
-
-  const handleUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadedImage(URL.createObjectURL(file));
-      setTextForm(prev => ({ ...prev, topic: 'Analyze this uploaded competitor ad and generate 3 similar high-converting headline ideas.' }));
-    }
-  };
-
-  const handleTextGenerate = async (e) => {
-    e.preventDefault();
-    setIsLoadingText(true);
-    setTextResult('');
-
-    try {
-      const enrichedTopic = `[Brand Context: ${brandMemory}] Task: ${textForm.topic}`;
-      const response = await axios.post('https://agency-saas-backend-2flg.onrender.com/', {
-        topic: enrichedTopic,
-        content_type: textForm.type,
-        tone: textForm.tone
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      setTextResult(response.data.result);
-    } catch (error) {
-      setTextResult('🚀 **[AI GENERATED MOCK]**\n\n(Fallback Mode Active due to API limits)\n\n**Headline:** Skyrocket Your Agency ROI\n**Description:** Our custom AI models help you generate converting ad copy in seconds, not hours. Start your free trial today.');
-    } finally {
-      setIsLoadingText(false);
-    }
-  };
-
-  // REAL IMAGE GENERATION LOGIC (UPDATED)
-  const handleImageGenerate = (e) => {
-    e.preventDefault();
-    if (!imagePrompt) return;
+    setIsGenerating(true);
+    setAiOutput('');
     
-    setIsLoadingImage(true);
-    setImageResult('');
-    setImageError(false); // Reset error
-    
-    // Random seed banaya taaki har baar nayi image aaye
-    const randomSeed = Math.floor(Math.random() * 1000000);
-    // Prompt ko safe banaya
-    const encodedPrompt = encodeURIComponent(imagePrompt.trim());
-    
-    // Direct URL set ki, timeout hata diya
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true&seed=${randomSeed}`;
-    setImageResult(imageUrl);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setAiOutput(
+        activeTab === 'text' 
+        ? "Here is your AI-generated Ad Copy:\n\n🚀 Supercharge your marketing with our B2B solutions! Stop wasting budget and start closing deals. Click here to claim your free audit today!"
+        : "🎨 [AI Image Preview Placeholder] - A stunning futuristic cityscape generated based on your prompt."
+      );
+    }, 1500);
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', animation: 'fadeIn 0.5s ease-out' }}>
+    <div className="ai-studio-container">
       
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Bot style={{ color: 'var(--primary)' }} size={32} /> AI Studio 2.0
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginTop: '4px' }}>
-          Advanced AI trained on your brand memory. Generate converting copy and stunning graphics.
-        </p>
+      {/* 1. HEADER & MEMORY SETTINGS */}
+      <div className="ai-header-flex">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Bot size={28} style={{ color: 'var(--primary)' }} />
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>AI Studio 2.0</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>Advanced AI trained on your brand memory.</p>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => setIsMemoryModalOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'rgba(40, 70, 158, 0.1)', color: 'var(--primary)', border: 'none', borderRadius: '100px', fontWeight: '600', cursor: 'pointer' }}
+        >
+          <Settings size={18} /> Update Memory
+        </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* LEFT COLUMN: Memory & Vision */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="bento-card" style={{ padding: '24px', background: 'linear-gradient(180deg, #ffffff, #f8fafc)' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Zap size={18} style={{ color: 'var(--primary)' }} /> Brand Memory (Learning)
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>Tell the AI about your brand, audience, and rules. It will remember this for every generation.</p>
+        {/* 2. VISION AI (Competitor Scan) - Full Width */}
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <Image size={20} style={{ color: 'var(--primary)' }} />
+            <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Vision AI (Competitor Scan)</h3>
+          </div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>Upload a screenshot of a competitor's ad. The AI will analyze it and write a better version.</p>
+          
+          <div style={{ border: '2px dashed var(--border-color)', borderRadius: '12px', padding: '32px', textAlign: 'center', cursor: 'pointer', backgroundColor: '#f8fafc' }}>
+            <UploadCloud size={32} style={{ color: 'var(--text-muted)', margin: '0 auto 12px auto' }} />
+            <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>Click to upload screenshot</span>
+          </div>
+        </div>
+
+        {/* 3. GENERATIVE AI BOX (Ad Copy & Image Gen) */}
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
+          
+          {/* Pill Toggle for Tabs */}
+          <div className="pill-toggle-container">
+            <button 
+              className={`pill-button ${activeTab === 'text' ? 'active' : ''}`} 
+              onClick={() => {setActiveTab('text'); setAiOutput('');}}
+            >
+              <Type size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '6px' }}/> Ad Copy & Text
+            </button>
+            <button 
+              className={`pill-button ${activeTab === 'image' ? 'active' : ''}`} 
+              onClick={() => {setActiveTab('image'); setAiOutput('');}}
+            >
+              <Image size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '6px' }}/> AI Image Gen
+            </button>
+          </div>
+
+          <form onSubmit={handleGenerate}>
+            {/* Show Dropdowns ONLY if Text Tab is active */}
+            {activeTab === 'text' && (
+              <div className="ai-dropdown-row">
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-muted)' }}>Content Type</label>
+                  <select className="input-field" style={{ width: '100%', background: '#f8fafc' }}>
+                    <option>Google Ad Copy</option>
+                    <option>Facebook Ad Copy</option>
+                    <option>SEO Blog Post</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-muted)' }}>Tone of Voice</label>
+                  <select className="input-field" style={{ width: '100%', background: '#f8fafc' }}>
+                    <option>Professional</option>
+                    <option>Persuasive & Aggressive</option>
+                    <option>Friendly & Casual</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* ChatGPT / Gemini Style Chatbox */}
+            <div className="chatbox-wrapper">
+              <textarea 
+                className="chatbox-input" 
+                placeholder={activeTab === 'text' ? "e.g. Write a digital marketing ad for a SaaS company..." : "e.g. A futuristic digital marketing office with neon lights..."}
+                required
+              />
+              <div className="chatbox-footer">
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>AI will generate based on your prompt</span>
+                <button type="submit" className="btn-primary" style={{ padding: '8px 20px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '8px' }} disabled={isGenerating}>
+                  <Sparkles size={16} /> {isGenerating ? 'Generating...' : 'Generate'}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* AI Output Area */}
+          {aiOutput && (
+            <div className="ai-reply-box">
+              <span style={{ fontWeight: '700', display: 'block', marginBottom: '8px', color: 'var(--primary)' }}>AI Response:</span>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{aiOutput}</div>
+            </div>
+          )}
+
+        </div>
+      </div>
+
+      {/* ==============================================
+          4. BRAND MEMORY MODAL (POPUP)
+          ============================================== */}
+      {isMemoryModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsMemoryModalOpen(false)}>
+          {/* Prevent clicks inside modal from closing it */}
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Update Brand Memory</h3>
+              <X size={24} style={{ color: 'var(--text-muted)', cursor: 'pointer' }} onClick={() => setIsMemoryModalOpen(false)} />
+            </div>
+            
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+              Give AI specific instructions about your brand, audience, and rules. It will remember this for every generation.
+            </p>
+
             <textarea 
               className="input-field" 
-              rows="4" 
-              value={brandMemory}
-              onChange={(e) => setBrandMemory(e.target.value)}
-              style={{ fontSize: '13px', resize: 'none', marginBottom: '16px' }}
+              style={{ width: '100%', minHeight: '150px', resize: 'vertical', marginBottom: '20px', background: '#f8fafc' }}
+              defaultValue="We are a premium digital marketing agency targeting B2B clients. Keep the tone highly professional, concise, and persuasive."
             />
-            <button onClick={handleSaveMemory} className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px', background: isMemorySaved ? '#10b981' : 'var(--primary)' }}>
-              {isMemorySaved ? <><Check size={16} /> Saved in Memory</> : <><Save size={16} /> Update Memory</>}
-            </button>
-          </div>
 
-          <div className="bento-card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ImageIcon size={18} style={{ color: 'var(--primary)' }} /> Vision AI (Competitor Scan)
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>Upload a screenshot of a competitor's ad. The AI will analyze it and write a better version.</p>
-            
-            <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '120px', border: '2px dashed var(--border-color)', borderRadius: '12px', cursor: 'pointer', background: uploadedImage ? '#eff6ff' : 'transparent', transition: 'all 0.2s' }}>
-              {uploadedImage ? (
-                <>
-                  <Check size={24} style={{ color: '#3b82f6', marginBottom: '8px' }} />
-                  <span style={{ fontSize: '13px', color: '#3b82f6', fontWeight: '600' }}>Image Scanned!</span>
-                </>
-              ) : (
-                <>
-                  <Upload size={24} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>Click to upload screenshot</span>
-                </>
-              )}
-              <input type="file" accept="image/*" onChange={handleUpload} style={{ display: 'none' }} />
-            </label>
+            <button 
+              className="btn-primary" 
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
+              onClick={() => {
+                alert('Brand memory updated successfully!');
+                setIsMemoryModalOpen(false);
+              }}
+            >
+              <Save size={18} /> Save Instructions
+            </button>
           </div>
         </div>
+      )}
 
-        {/* RIGHT COLUMN: Generation Engine */}
-        <div className="bento-card" style={{ padding: '0', display: 'flex', flexDirection: 'column' }}>
-          
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)' }}>
-            <button onClick={() => setActiveTab('text')} style={{ flex: 1, padding: '16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'text' ? '2px solid var(--primary)' : '2px solid transparent', color: activeTab === 'text' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-              <Bot size={18} /> Ad Copy & Text
-            </button>
-            <button onClick={() => setActiveTab('image')} style={{ flex: 1, padding: '16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'image' ? '2px solid var(--primary)' : '2px solid transparent', color: activeTab === 'image' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-              <ImageIcon size={18} /> AI Image Gen
-            </button>
-          </div>
-
-          <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            
-            {/* TEXT TAB */}
-            {activeTab === 'text' && (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <form onSubmit={handleTextGenerate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px' }}>Content Type</label>
-                    <select className="input-field" value={textForm.type} onChange={(e) => setTextForm({...textForm, type: e.target.value})}>
-                      <option>Google Ad Copy</option>
-                      <option>Facebook Ad Copy</option>
-                      <option>SEO Blog Post</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px' }}>Tone of Voice</label>
-                    <select className="input-field" value={textForm.tone} onChange={(e) => setTextForm({...textForm, tone: e.target.value})}>
-                      <option>Professional</option>
-                      <option>Conversational & Friendly</option>
-                      <option>Aggressive & Salesy</option>
-                    </select>
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px' }}>What are we writing about?</label>
-                    <textarea className="input-field" rows="2" placeholder="e.g. A new digital marketing service..." value={textForm.topic} onChange={(e) => setTextForm({...textForm, topic: e.target.value})} required></textarea>
-                  </div>
-                  <button type="submit" className="btn-primary" style={{ gridColumn: '1 / -1', height: '48px' }} disabled={isLoadingText}>
-                    {isLoadingText ? <RefreshCw className="animate-spin" style={{ margin: '0 auto' }} /> : <><Sparkles size={18} style={{ marginRight: '8px', display: 'inline-block' }} /> Generate Content</>}
-                  </button>
-                </form>
-
-                <div style={{ flex: 1, background: '#f8fafc', borderRadius: '12px', padding: '24px', border: '1px solid var(--border-color)', position: 'relative' }}>
-                  {!textResult && !isLoadingText && (
-                    <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px' }}>Your AI-generated text will appear here.</div>
-                  )}
-                  {isLoadingText && (
-                    <div style={{ color: 'var(--primary)', textAlign: 'center', marginTop: '40px', fontWeight: '500', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                      <RefreshCw className="animate-spin" size={24} /> Processing with Brand Context...
-                    </div>
-                  )}
-                  {textResult && !isLoadingText && (
-                    <div>
-                      <button onClick={() => { navigator.clipboard.writeText(textResult); setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); }} style={{ position: 'absolute', top: '16px', right: '16px', background: 'white', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600' }}>
-                        {isCopied ? <Check size={14} color="#10b981" /> : <Copy size={14} />} {isCopied ? 'Copied!' : 'Copy'}
-                      </button>
-                      <div style={{ whiteSpace: 'pre-wrap', fontSize: '14.5px', lineHeight: '1.6', color: 'var(--text-main)', marginTop: '24px' }}>
-                        {textResult}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* IMAGE TAB (UPDATED ROBUST LOGIC) */}
-            {activeTab === 'image' && (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <form onSubmit={handleImageGenerate} style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '8px' }}>Describe the image or banner you want</label>
-                  <textarea className="input-field" rows="3" placeholder="e.g. A cricket player hitting a six, stadium lights, photorealistic" value={imagePrompt} onChange={(e) => setImagePrompt(e.target.value)} required></textarea>
-                  <button type="submit" className="btn-primary" style={{ width: '100%', height: '48px', marginTop: '16px', background: '#8b5cf6' }} disabled={isLoadingImage}>
-                    {isLoadingImage ? <RefreshCw className="animate-spin" style={{ margin: '0 auto' }} /> : <><ImageIcon size={18} style={{ marginRight: '8px', display: 'inline-block' }} /> Generate Image</>}
-                  </button>
-                </form>
-
-                {/* Real-time Image Area */}
-                <div style={{ flex: 1, background: '#f8fafc', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', minHeight: '300px', position: 'relative' }}>
-                  
-                  {!imageResult && !isLoadingImage && !imageError && (
-                    <div style={{ color: 'var(--text-muted)' }}>Generated image will appear here.</div>
-                  )}
-                  
-                  {/* Jab tak asli image load na ho, spinner ghumta rahega */}
-                  {isLoadingImage && (
-                    <div style={{ color: '#8b5cf6', fontWeight: '500', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'absolute' }}>
-                      <RefreshCw className="animate-spin" size={24} /> 
-                      <span>Generating Image (Please wait...)</span>
-                    </div>
-                  )}
-
-                  {imageError && (
-                    <div style={{ color: '#ef4444', fontWeight: '500', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '20px', textAlign: 'center' }}>
-                      <ImageIcon size={32} /> 
-                      <span>Failed to load image. Please try a different prompt.</span>
-                    </div>
-                  )}
-
-                  {imageResult && (
-                    <img 
-                      src={imageResult} 
-                      alt="AI Generated" 
-                      // Image ko invisible rakhenge jab tak load na ho jaye
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isLoadingImage ? 0 : 1, transition: 'opacity 0.3s' }} 
-                      // Load hote hi spinner hat jayega
-                      onLoad={() => { setIsLoadingImage(false); setImageError(false); }}
-                      // Agar block hua to error aayega
-                      onError={() => { setIsLoadingImage(false); setImageError(true); setImageResult(''); }}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

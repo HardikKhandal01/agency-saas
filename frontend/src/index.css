@@ -856,3 +856,146 @@ body {
     padding: 16px; /* Mobile par table dabba screen me fit baithega */
   }
 }
+/* =========================================
+   📱 AI STUDIO RESPONSIVENESS & UI
+   ========================================= */
+
+.ai-studio-container {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Header with Memory Settings */
+.ai-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Tab Toggle (iPhone Pill Style) */
+.pill-toggle-container {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 100px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.pill-button {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 100px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.pill-button.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Dropdowns Layout */
+.ai-dropdown-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ai-dropdown-row > div {
+  flex: 1;
+}
+
+/* ChatGPT/Gemini Style Chatbox */
+.chatbox-wrapper {
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: white;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: border-color 0.3s;
+}
+
+.chatbox-wrapper:focus-within {
+  border-color: var(--primary);
+}
+
+.chatbox-input {
+  border: none;
+  outline: none;
+  resize: none;
+  width: 100%;
+  min-height: 80px;
+  font-size: 15px;
+  font-family: inherit;
+  background: transparent;
+  color: var(--text-main);
+}
+
+.chatbox-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+/* AI Reply Area */
+.ai-reply-box {
+  background: #f8fafc;
+  border-left: 4px solid var(--primary);
+  padding: 20px;
+  border-radius: 8px 16px 16px 8px;
+  margin-top: 24px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+/* Brand Memory Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 450px;
+  box-sizing: border-box;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Mobile Fixes */
+@media (max-width: 768px) {
+  .ai-dropdown-row {
+    flex-direction: column; /* Mobile par dropdown ek ke niche ek */
+    gap: 16px;
+  }
+}
