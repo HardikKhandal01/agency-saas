@@ -13,7 +13,7 @@ const DashboardLayout = () => {
     { name: 'CRM & Leads', path: '/dashboard/crm', icon: <Users size={20} /> },
     { name: 'Campaigns', path: '/dashboard/campaigns', icon: <Megaphone size={20} /> },
     { name: 'AI Studio', path: '/dashboard/ai', icon: <Bot size={20} /> },
-    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={20} /> },
+    { name: 'AI Receptionist', path: '/dashboard/settings', icon: <Settings size={20} /> },
   ];
 
   // Current page ka Title nikalne ke liye function
