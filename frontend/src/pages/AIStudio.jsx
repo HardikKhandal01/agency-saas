@@ -35,6 +35,17 @@ const handleGenerate = async (e) => {
           }
         }
       );
+      
+      // YAHAN CONSOLE LOG LAGAO 👇
+      console.log("Backend Response Data:", response.data); 
+
+      // Data Set karna
+      if (activeTab === 'image') {
+        // Yahan sure karo ki backend jis variable me image bhej raha hai, wahi likha ho
+        setAiOutput(response.data.image_url || response.data.result || response.data.image || response.data); 
+      } else {
+        setAiOutput(response.data.result || response.data.text);
+      }
 
       // Agar response me image_url hai toh wo dikhao, warna text dikhao
       if (activeTab === 'image') {
@@ -174,16 +185,22 @@ const handleGenerate = async (e) => {
               <span style={{ fontWeight: '700', display: 'block', marginBottom: '12px', color: 'var(--primary)' }}>AI Response:</span>
               
               {activeTab === 'image' ? (
-                // Image rendering logic
-                <img 
-                  src={aiOutput} 
-                  alt="AI Generated" 
-                  style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} 
-                />
-              ) : (
-                // Text rendering logic
-                <div style={{ whiteSpace: 'pre-wrap' }}>{aiOutput}</div>
-              )}
+              // Smart Image rendering logic
+              <img 
+              src={
+              aiOutput.startsWith('http') 
+              ? aiOutput // Agar direct link hai (http://...) toh seedha chalao
+             : aiOutput.startsWith('data:image') 
+             ? aiOutput // Agar prefix pehle se hai toh seedha chalao
+             : `data:image/png;base64,${aiOutput}` // Agar sirf lamba code hai, toh prefix add karo
+             } 
+            alt="AI Generated" 
+            style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} 
+            />
+            ) : (
+            // Text rendering logic
+            <div style={{ whiteSpace: 'pre-wrap' }}>{aiOutput}</div>
+            )}
             </div>
           )}
 
