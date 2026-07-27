@@ -704,3 +704,70 @@ body {
     justify-content: center;
   }
 }
+/* =========================================
+   📱 DASHBOARD MOBILE RESPONSIVENESS 
+   ========================================= */
+
+.mobile-top-bar {
+  display: none; /* Desktop par hide rahega */
+}
+
+.hamburger-btn {
+  display: none; /* Desktop par hide rahega */
+}
+
+.sidebar {
+  width: 260px;
+  background: white;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+  z-index: 100;
+}
+
+/* 📱 Mobile Specific Styles */
+@media (max-width: 768px) {
+  .mobile-top-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 40;
+  }
+
+  .desktop-sidebar-logo {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-main);
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%); /* Default chhupa rahega */
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  }
+
+  .sidebar.open {
+    transform: translateX(0); /* Hamburger click karne par bahar aayega */
+  }
+
+  .profile-text {
+    display: none; /* Mobile par header me jagah bachane ke liye naam chhipa denge */
+  }
+}
