@@ -1,26 +1,64 @@
 import React, { useState } from 'react';
 import { Bot, Settings, UploadCloud, Sparkles, X, Save, Image, Type } from 'lucide-react';
+// import axios from 'axios'; // Isko uncomment karlena agar API call kar rahe ho
 
 const AIStudio = () => {
   const [activeTab, setActiveTab] = useState('text'); // 'text' or 'image'
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiOutput, setAiOutput] = useState('');
+  
+  // Prompt ke liye state add kiya hai
+  const [promptInput, setPromptInput] = useState(''); 
 
-  // Dummy function to simulate AI generation
-  const handleGenerate = (e) => {
+const handleGenerate = async (e) => {
     e.preventDefault();
     setIsGenerating(true);
     setAiOutput('');
     
-    setTimeout(() => {
-      setIsGenerating(false);
-      setAiOutput(
-        activeTab === 'text' 
-        ? "Here is your AI-generated Ad Copy:\n\n🚀 Supercharge your marketing with our B2B solutions! Stop wasting budget and start closing deals. Click here to claim your free audit today!"
-        : "🎨 [AI Image Preview Placeholder] - A stunning futuristic cityscape generated based on your prompt."
+    try {
+      // LocalStorage se token nikalna (jo Login ke time save hua tha)
+      const token = localStorage.getItem('access_token');
+
+      // Backend API ko request bhejna
+      const response = await axios.post(
+        'https://agency-saas-backend-2flg.onrender.com/api/v1/ai/generate',
+        {
+          prompt: promptInput,
+          // Backend ko batana ki text chahiye ya image
+          content_type: activeTab === 'image' ? 'image' : 'text' 
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Security ke liye token bhejna
+          }
+        }
       );
-    }, 1500);
+
+      // Agar response me image_url hai toh wo dikhao, warna text dikhao
+      if (activeTab === 'image') {
+        // Maan lo backend response.data.image_url bhejta hai
+        setAiOutput(response.data.image_url || response.data.result); 
+      } else {
+        setAiOutput(response.data.result || response.data.text);
+      }
+
+    } catch (error) {
+      console.error("API Error:", error);
+      setAiOutput("Oops! Kuch error aa gaya. Please check console ya phir try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Image Upload Handler
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      alert(`File selected: ${file.name}\n(Yahan apna image upload ka code daal sakte ho)`);
+      // API call to upload screenshot
+    }
   };
 
   return (
@@ -46,7 +84,7 @@ const AIStudio = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* 2. VISION AI (Competitor Scan) - Full Width */}
+        {/* 2. VISION AI (Native Upload Feature) */}
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <Image size={20} style={{ color: 'var(--primary)' }} />
@@ -54,33 +92,43 @@ const AIStudio = () => {
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>Upload a screenshot of a competitor's ad. The AI will analyze it and write a better version.</p>
           
-          <div style={{ border: '2px dashed var(--border-color)', borderRadius: '12px', padding: '32px', textAlign: 'center', cursor: 'pointer', backgroundColor: '#f8fafc' }}>
-            <UploadCloud size={32} style={{ color: 'var(--text-muted)', margin: '0 auto 12px auto' }} />
-            <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>Click to upload screenshot</span>
-          </div>
+          {/* 👈 NATIVE FILE UPLOAD IMPLEMENTATION */}
+          <label htmlFor="vision-upload" style={{ display: 'block', cursor: 'pointer' }}>
+            <div style={{ border: '2px dashed var(--border-color)', borderRadius: '12px', padding: '32px', textAlign: 'center', backgroundColor: '#f8fafc', transition: 'background 0.2s' }}>
+              <UploadCloud size={32} style={{ color: 'var(--text-muted)', margin: '0 auto 12px auto' }} />
+              <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>Click to upload screenshot</span>
+            </div>
+            {/* Ye hidden tag mobile ka asli File Picker open karega */}
+            <input 
+              type="file" 
+              id="vision-upload" 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handleImageUpload}
+            />
+          </label>
         </div>
 
-        {/* 3. GENERATIVE AI BOX (Ad Copy & Image Gen) */}
+        {/* 3. GENERATIVE AI BOX (Bigger Chatbox) */}
         <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px' }}>
           
           {/* Pill Toggle for Tabs */}
           <div className="pill-toggle-container">
             <button 
               className={`pill-button ${activeTab === 'text' ? 'active' : ''}`} 
-              onClick={() => {setActiveTab('text'); setAiOutput('');}}
+              onClick={() => {setActiveTab('text'); setAiOutput(''); setPromptInput('');}}
             >
               <Type size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '6px' }}/> Ad Copy & Text
             </button>
             <button 
               className={`pill-button ${activeTab === 'image' ? 'active' : ''}`} 
-              onClick={() => {setActiveTab('image'); setAiOutput('');}}
+              onClick={() => {setActiveTab('image'); setAiOutput(''); setPromptInput('');}}
             >
               <Image size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '6px' }}/> AI Image Gen
             </button>
           </div>
 
           <form onSubmit={handleGenerate}>
-            {/* Show Dropdowns ONLY if Text Tab is active */}
             {activeTab === 'text' && (
               <div className="ai-dropdown-row">
                 <div>
@@ -106,7 +154,9 @@ const AIStudio = () => {
             <div className="chatbox-wrapper">
               <textarea 
                 className="chatbox-input" 
-                placeholder={activeTab === 'text' ? "e.g. Write a digital marketing ad for a SaaS company..." : "e.g. A futuristic digital marketing office with neon lights..."}
+                value={promptInput}
+                onChange={(e) => setPromptInput(e.target.value)}
+                placeholder={activeTab === 'text' ? "e.g. Write a digital marketing ad for a SaaS company..." : "e.g. A high-quality futuristic cricket stadium with neon lights..."}
                 required
               />
               <div className="chatbox-footer">
@@ -118,23 +168,31 @@ const AIStudio = () => {
             </div>
           </form>
 
-          {/* AI Output Area */}
+          {/* 👈 DYNAMIC AI OUTPUT AREA (Text ya Image render karega) */}
           {aiOutput && (
-            <div className="ai-reply-box">
-              <span style={{ fontWeight: '700', display: 'block', marginBottom: '8px', color: 'var(--primary)' }}>AI Response:</span>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{aiOutput}</div>
+            <div className="ai-reply-box" style={{ padding: activeTab === 'image' ? '12px' : '20px' }}>
+              <span style={{ fontWeight: '700', display: 'block', marginBottom: '12px', color: 'var(--primary)' }}>AI Response:</span>
+              
+              {activeTab === 'image' ? (
+                // Image rendering logic
+                <img 
+                  src={aiOutput} 
+                  alt="AI Generated" 
+                  style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} 
+                />
+              ) : (
+                // Text rendering logic
+                <div style={{ whiteSpace: 'pre-wrap' }}>{aiOutput}</div>
+              )}
             </div>
           )}
 
         </div>
       </div>
 
-      {/* ==============================================
-          4. BRAND MEMORY MODAL (POPUP)
-          ============================================== */}
+      {/* BRAND MEMORY MODAL */}
       {isMemoryModalOpen && (
         <div className="modal-overlay" onClick={() => setIsMemoryModalOpen(false)}>
-          {/* Prevent clicks inside modal from closing it */}
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Update Brand Memory</h3>
@@ -164,7 +222,6 @@ const AIStudio = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

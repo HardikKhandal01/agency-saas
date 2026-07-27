@@ -937,7 +937,7 @@ body {
   outline: none;
   resize: none;
   width: 100%;
-  min-height: 80px;
+  min-height: 160px;
   font-size: 15px;
   font-family: inherit;
   background: transparent;
