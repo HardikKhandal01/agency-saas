@@ -771,3 +771,88 @@ body {
     display: none; /* Mobile par header me jagah bachane ke liye naam chhipa denge */
   }
 }
+/* =========================================
+   📱 CAMPAIGNS PAGE RESPONSIVENESS
+   ========================================= */
+
+.campaigns-container {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden; /* Bahar ka horizontal scroll completely band */
+}
+
+/* Empty State Box */
+.empty-state-box {
+  padding: 40px 24px;
+  text-align: center;
+  margin: 20px auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Grids for Desktop */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* Card Styling */
+.metric-card {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.highlight-card {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+/* Table Card Fix */
+.table-wrapper {
+  padding: 24px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Sirf is div ke andar horizontal scroll hoga */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; 
+}
+
+/* 📱 MOBILE FIXES (Magic happens here) */
+@media (max-width: 768px) {
+  .empty-state-box {
+    padding: 32px 16px; /* Side space kam kiya taaki box bada dikhe */
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr; /* Har scroll par sirf 1 box dikhega */
+    gap: 16px;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr; /* Budget aur Device box bhi 1 column me */
+    gap: 16px;
+  }
+  
+  .table-wrapper {
+    padding: 16px; /* Mobile par table dabba screen me fit baithega */
+  }
+}
