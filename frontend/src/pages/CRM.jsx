@@ -9,7 +9,6 @@ const CRM = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   
-  // Naya State: Track karne ke liye ki konsa lead edit ho raha hai aur kiska menu open hai
   const [editingId, setEditingId] = useState(null);
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
@@ -21,7 +20,6 @@ const CRM = () => {
     status: 'new'
   });
 
-  // API Call: Backend se Leads lana
   const fetchLeads = async () => {
     try {
       const token = localStorage.getItem('access_token');
@@ -56,29 +54,25 @@ const CRM = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 🧠 API Call: Lead Create ya Update karna
   const handleSaveLead = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
       
       if (editingId) {
-        // UPDATE LEAD LOGIC (PUT Request)
         await axios.put(`https://agency-saas-backend-2flg.onrender.com/api/v1/leads/${editingId}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // CREATE NEW LEAD LOGIC (POST Request)
         await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
       
-      // Form and Modal Reset
       setShowModal(false);
       setEditingId(null);
       setFormData({ name: '', company: '', email: '', value: '', status: 'new' }); 
-      fetchLeads(); // Nayi updated list laao
+      fetchLeads(); 
       
     } catch (error) {
       console.error("Error saving lead:", error);
@@ -91,7 +85,6 @@ const CRM = () => {
     }
   };
 
-  // Add Lead button par click karne par form fresh khulega
   const handleAddNewClick = () => {
     setFormData({ name: '', company: '', email: '', value: '', status: 'new' });
     setEditingId(null);
@@ -113,23 +106,26 @@ const CRM = () => {
           <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>{lead.company || 'No Company'}</div>
         </div>
         
-        {/* 3 Dots & Dropdown Menu */}
         <div style={{ position: 'relative' }}>
           <MoreHorizontal 
             size={18} 
             style={{ color: 'var(--text-muted)', cursor: 'pointer' }} 
-            onClick={() => setOpenDropdownId(openDropdownId === lead.id ? null : lead.id)}
+            onClick={(e) => {
+              e.stopPropagation(); // 👈 BUG FIX: Click ko background tak jaane se roko
+              setOpenDropdownId(openDropdownId === lead.id ? null : lead.id);
+            }}
           />
           
           {openDropdownId === lead.id && (
             <div style={{ position: 'absolute', right: 0, top: '24px', background: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
               <div 
                 style={{ padding: '10px 16px', fontSize: '14px', cursor: 'pointer', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}
-                onClick={() => {
-                  setFormData(lead); // Pura data form me daal do
-                  setEditingId(lead.id); // Set karo ki edit mode hai
-                  setShowModal(true); // Modal khol do
-                  setOpenDropdownId(null); // Menu band kar do
+                onClick={(e) => {
+                  e.stopPropagation(); // 👈 BUG FIX: Yahan bhi click ko roko
+                  setFormData(lead); 
+                  setEditingId(lead.id); 
+                  setShowModal(true); 
+                  setOpenDropdownId(null); 
                 }}
               >
                 <Edit2 size={14} /> Edit Lead
@@ -158,7 +154,6 @@ const CRM = () => {
   return (
     <div className="crm-container">
       
-      {/* Header section */}
       <div className="crm-header-top">
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-main)' }}>CRM & Leads</h1>
@@ -181,9 +176,7 @@ const CRM = () => {
           <Loader2 className="animate-spin" size={32} style={{ color: 'var(--primary)' }} />
         </div>
       ) : (
-        /* Kanban Board */
         <div className="kanban-board" onClick={() => setOpenDropdownId(null)}> 
-          {/* (Board pe kahin bhi click karne par dropdown band ho jayega) */}
           
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '12px' }}>
@@ -223,8 +216,8 @@ const CRM = () => {
 
       {/* DYNAMIC MODAL (Add/Edit) */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div className="crm-modal-content">
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={() => setShowModal(false)}>
+          <div className="crm-modal-content" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0 }}>
                 {editingId ? 'Edit Lead Details' : 'Add New Lead'}
