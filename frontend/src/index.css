@@ -1141,7 +1141,13 @@ body {
   }
 
   .chat-interface-wrapper {
-    height: 80vh; /* Mobile par aur bada area */
+    width: calc(100% + 32px); /* Mobile par thoda extra width taaki scroll na aaye */
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0; /* Mobile par full width */
+    border-left: none;
+    border-right: none;
+    height: 85vh; /* Mobile par aur bada area */
   }
 
   .chat-input-area {
