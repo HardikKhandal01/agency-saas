@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreHorizontal, Mail, Phone, X, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // 👈 401 handle karne ke liye
 import axios from 'axios';
 
 const CRM = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
   
-  // New Lead Form State
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -20,20 +21,34 @@ const CRM = () => {
   const fetchLeads = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      // FIX 1: Exact endpoint '/api/v1/leads/' lagaya
+      
+      // Agar token hi nahi hai toh direct login par bhejo
+      if (!token) {
+        navigate('/auth');
+        return;
+      }
+
       const response = await axios.get('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // FIX 2: Safety check - Ensure data is an array before setting it
       if (Array.isArray(response.data)) {
         setLeads(response.data);
       } else {
-        setLeads([]); // Agar error aaye toh empty array set karo
+        setLeads([]);
       }
     } catch (error) {
       console.error("Error fetching leads:", error);
-      setLeads([]); // Crash se bachne ke liye khali list
+      
+      // 🧠 SMART FIX for 401 Unauthorized
+      if (error.response && error.response.status === 401) {
+        alert("Your session has expired. Please login again.");
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('isLoggedIn');
+        navigate('/auth'); // Wapas login page par bhej do
+      }
+      
+      setLeads([]); 
     } finally {
       setLoading(false);
     }
@@ -41,6 +56,7 @@ const CRM = () => {
 
   useEffect(() => {
     fetchLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // API Call: Nayi Lead Create karna
@@ -48,22 +64,26 @@ const CRM = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      // FIX 3: Endpoint update kiya
       await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       setShowModal(false);
       setFormData({ name: '', company: '', email: '', value: '', status: 'new' }); 
-      fetchLeads(); 
+      fetchLeads(); // Nayi list laao
       
     } catch (error) {
       console.error("Error creating lead:", error);
-      alert("Failed to create lead.");
+      
+      if (error.response && error.response.status === 401) {
+        alert("Session expired. Please login again to save lead.");
+        navigate('/auth');
+      } else {
+        alert("Failed to create lead. Check console for details.");
+      }
     }
   };
 
-  // FIX 4: Safety Check - Make sure we are filtering an array
   const safeLeads = Array.isArray(leads) ? leads : [];
   const groupedLeads = {
     new: safeLeads.filter(l => l.status === 'new'),
@@ -72,7 +92,7 @@ const CRM = () => {
   };
 
   const LeadCard = ({ lead }) => (
-    <div className="lead-card" style={{ padding: '16px', background: 'white', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '12px' }}>
+    <div style={{ padding: '16px', background: 'white', border: '1px solid var(--border-color)', borderRadius: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontWeight: '600', color: 'var(--text-main)', fontSize: '15px' }}>{lead.name}</div>
@@ -98,21 +118,21 @@ const CRM = () => {
   );
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="crm-container">
       
-      {/* Header section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+      {/* Header section (Now Mobile Responsive) */}
+      <div className="crm-header-top">
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-main)' }}>CRM & Leads</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>Manage your sales pipeline and track prospects.</p>
         </div>
         
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <div style={{ position: 'relative' }}>
+        <div className="crm-header-actions">
+          <div className="crm-search-wrapper">
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }} />
-            <input type="text" placeholder="Search leads..." className="input-field" style={{ paddingLeft: '40px', width: '250px', marginBottom: 0 }} />
+            <input type="text" placeholder="Search leads..." className="input-field crm-search-input" />
           </div>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setShowModal(true)}>
+          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }} onClick={() => setShowModal(true)}>
             <Plus size={18} /> Add Lead
           </button>
         </div>
@@ -123,11 +143,11 @@ const CRM = () => {
           <Loader2 className="animate-spin" size={32} style={{ color: 'var(--primary)' }} />
         </div>
       ) : (
-        /* Kanban Board - Layout structure setup */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+        /* Kanban Board (Stacks on Mobile) */
+        <div className="kanban-board">
           
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: 'var(--text-main)' }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#3b82f6' }}></div>
                 New Leads
@@ -138,7 +158,7 @@ const CRM = () => {
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: 'var(--text-main)' }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#eab308' }}></div>
                 In Progress
@@ -149,7 +169,7 @@ const CRM = () => {
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: 'var(--text-main)' }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#22c55e' }}></div>
                 Closed Won
@@ -162,40 +182,40 @@ const CRM = () => {
         </div>
       )}
 
-      {/* ADD LEAD MODAL */}
+      {/* ADD LEAD MODAL (Mobile Optimized) */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '500px' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div className="crm-modal-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Add New Lead</h2>
-              <X size={20} style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={() => setShowModal(false)} />
+              <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0 }}>Add New Lead</h2>
+              <X size={24} style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={() => setShowModal(false)} />
             </div>
 
             <form onSubmit={handleCreateLead}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Lead Name *</label>
-                <input type="text" className="input-field" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Rahul Sharma" style={{ width: '100%' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-muted)' }}>Lead Name *</label>
+                <input type="text" className="input-field" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Rahul Sharma" style={{ width: '100%', boxSizing: 'border-box' }} />
               </div>
               
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Company</label>
-                <input type="text" className="input-field" value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} placeholder="e.g. Tech Innovators" style={{ width: '100%' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-muted)' }}>Company</label>
+                <input type="text" className="input-field" value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} placeholder="e.g. Tech Innovators" style={{ width: '100%', boxSizing: 'border-box' }} />
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+              <div className="crm-form-row">
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Email</label>
-                  <input type="email" className="input-field" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="rahul@example.com" style={{ width: '100%' }} />
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-muted)' }}>Email</label>
+                  <input type="email" className="input-field" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="rahul@example.com" style={{ width: '100%', boxSizing: 'border-box' }} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Value ($)</label>
-                  <input type="number" className="input-field" value={formData.value} onChange={(e) => setFormData({...formData, value: e.target.value})} placeholder="1200" style={{ width: '100%' }} />
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-muted)' }}>Value ($)</label>
+                  <input type="number" className="input-field" value={formData.value} onChange={(e) => setFormData({...formData, value: e.target.value})} placeholder="1200" style={{ width: '100%', boxSizing: 'border-box' }} />
                 </div>
               </div>
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Status</label>
-                <select className="input-field" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} style={{ width: '100%' }}>
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-muted)' }}>Status</label>
+                <select className="input-field" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc' }}>
                   <option value="new">New Lead</option>
                   <option value="contacted">In Progress</option>
                   <option value="closed">Closed Won</option>
@@ -203,8 +223,8 @@ const CRM = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', fontWeight: '500', color: 'var(--text-muted)', cursor: 'pointer', padding: '10px 20px' }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ padding: '10px 24px' }}>Save Lead</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', fontWeight: '600', color: 'var(--text-muted)', cursor: 'pointer', padding: '10px 20px' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ padding: '10px 24px', borderRadius: '100px' }}>Save Lead</button>
               </div>
             </form>
           </div>
