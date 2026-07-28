@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mic, PhoneCall, Settings, Paperclip, Send, User, Bot, Loader2 } from 'lucide-react';
 
 const Receptionist = () => {
@@ -7,6 +7,9 @@ const Receptionist = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+
+  // Auto-scroll ke liye Ref
+  const messagesEndRef = useRef(null);
 
   // Chat Messages State
   const [messages, setMessages] = useState([
@@ -18,22 +21,48 @@ const Receptionist = () => {
     marcus: { name: 'Marcus (UK)', tagline: 'Authoritative & Clear', gender: 'male' }
   };
 
-  // 🔊 Text-To-Speech Logic (AI ko bulwane ke liye)
+  // 🔽 Auto Scroll Logic (WhatsApp style)
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Jab bhi messages change honge, auto-scroll trigger hoga
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isAiTyping]);
+
+  // 🧠 AI Brain Logic (Smart Replies)
+  const getSmartAIReply = (userInput) => {
+    const text = userInput.toLowerCase();
+    
+    if (text.includes('roi') || text.includes('campaign')) {
+      return "Based on the latest data, your overall campaign ROI is up by 12% this week. The Google Ads channel is performing the best with a $0.45 CPC. Would you like a detailed report?";
+    } 
+    else if (text.includes('lead') || text.includes('analyze')) {
+      return "I've analyzed today's leads. You have 14 new sign-ups. 3 of them are high-ticket B2B prospects. I have already tagged them in the CRM. Should I assign them to your sales team?";
+    } 
+    else if (text.includes('email') || text.includes('draft')) {
+      return "Here is a draft for your welcome email:\n\n'Hi [Name], welcome to our agency! We are thrilled to help you scale your business...'\n\nWould you like me to send this to the new leads now?";
+    } 
+    else {
+      return "That's a great point. I have logged this request in your CRM. Is there anything else you need me to handle for your agency right now?";
+    }
+  };
+
+  // 🔊 Text-To-Speech Logic
   const speakText = (text, agentId) => {
     if (!window.speechSynthesis) return;
     
-    window.speechSynthesis.cancel(); // Purani aawaz roko
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     
     if (agentId === 'sarah') {
-      // Female Voice dhoondho
       const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Google US English'));
       if (femaleVoice) utterance.voice = femaleVoice;
       utterance.pitch = 1.1;
       utterance.rate = 1.0;
     } else {
-      // Male Voice dhoondho
       const maleVoice = voices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Daniel') || v.name.includes('Google UK English Male'));
       if (maleVoice) utterance.voice = maleVoice;
       utterance.pitch = 0.9;
@@ -57,14 +86,12 @@ const Receptionist = () => {
     const textToSend = textOverride || chatMessage;
     if (!textToSend.trim()) return;
 
-    // User ka message add karo
     setMessages(prev => [...prev, { role: 'user', text: textToSend }]);
     setChatMessage('');
     setIsAiTyping(true);
 
-    // AI ka reply (Dummy delay)
     setTimeout(() => {
-      const aiReply = `I have received your request: "${textToSend}". Let me process that for you immediately.`;
+      const aiReply = getSmartAIReply(textToSend); // 🧠 Smart reply generate kiya
       setMessages(prev => [...prev, { role: 'ai', text: aiReply }]);
       setIsAiTyping(false);
     }, 1500);
@@ -87,16 +114,14 @@ const Receptionist = () => {
       const transcript = event.results[0][0].transcript;
       setIsListening(false);
       
-      // User ka bola hua message add karo
       setMessages(prev => [...prev, { role: 'user', text: `🎤 ${transcript}` }]);
       setIsAiTyping(true);
 
-      // AI ka Voice Reply
       setTimeout(() => {
-        const aiReply = `I heard you say: ${transcript}. I am working on it.`;
+        const aiReply = getSmartAIReply(transcript); // 🧠 Smart reply generate kiya
         setMessages(prev => [...prev, { role: 'ai', text: aiReply }]);
         setIsAiTyping(false);
-        speakText(aiReply, activeAgent); // Bol kar batao kyunki user ne bol kar pucha tha
+        speakText(aiReply, activeAgent); 
       }, 1500);
     };
 
@@ -112,7 +137,7 @@ const Receptionist = () => {
       setIsAiTyping(true);
       
       setTimeout(() => {
-        setMessages(prev => [...prev, { role: 'ai', text: `I have securely received your file "${file.name}". I will scan it for relevant data.` }]);
+        setMessages(prev => [...prev, { role: 'ai', text: `I have securely received your file "${file.name}". I have scanned it and attached it to the relevant CRM profile.` }]);
         setIsAiTyping(false);
       }, 1500);
     }
@@ -120,7 +145,6 @@ const Receptionist = () => {
 
   return (
     <div className="receptionist-container">
-      {/* HEADER */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Mic size={28} style={{ color: 'var(--primary)' }} />
@@ -129,9 +153,7 @@ const Receptionist = () => {
       </div>
 
       {!isChatOpen ? (
-        /* ================= SETUP VIEW ================= */
         <div className="setup-grid">
-          
           <div className="setup-box" style={{ textAlign: 'center' }}>
             <div className="mic-pulse-wrapper">
               <Mic size={40} />
@@ -174,10 +196,7 @@ const Receptionist = () => {
           </div>
         </div>
       ) : (
-        /* ================= CHAT VIEW ================= */
         <div className="chat-interface-wrapper">
-          
-          {/* Header */}
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', background: 'white' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
               <Mic size={20} />
@@ -188,7 +207,6 @@ const Receptionist = () => {
             </div>
           </div>
 
-          {/* Chat History */}
           <div className="chat-history">
             {messages.map((msg, idx) => (
               <div key={idx} style={{ display: 'flex', gap: '12px', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -202,7 +220,8 @@ const Receptionist = () => {
                   color: msg.role === 'user' ? 'white' : 'var(--text-main)',
                   padding: '12px 16px', 
                   borderRadius: msg.role === 'user' ? '16px 16px 0 16px' : '0 16px 16px 16px', 
-                  fontSize: '14px', maxWidth: '85%' 
+                  fontSize: '14px', maxWidth: '85%',
+                  whiteSpace: 'pre-wrap'
                 }}>
                   {msg.text}
                 </div>
@@ -217,20 +236,18 @@ const Receptionist = () => {
                 </div>
               </div>
             )}
+            {/* 🔽 Auto-Scroll Anchor */}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Chips */}
           <div className="chat-chips-row">
             <span className="chat-chip" onClick={() => handleSendMessage(null, "Analyze today's leads")}>Analyze leads</span>
             <span className="chat-chip" onClick={() => handleSendMessage(null, "Draft welcome email")}>Draft email</span>
             <span className="chat-chip" onClick={() => handleSendMessage(null, "Check campaign ROI")}>Check ROI</span>
           </div>
 
-          {/* Input Area */}
           <div className="chat-input-area">
             <form onSubmit={handleSendMessage} className="chat-input-box">
-              
-              {/* HIDDEN NATIVE FILE UPLOAD */}
               <label htmlFor="chat-file" className="chat-icon-btn" style={{ cursor: 'pointer', margin: 0 }}>
                 <Paperclip size={20} />
                 <input type="file" id="chat-file" style={{ display: 'none' }} multiple onChange={handleFileUpload} />
