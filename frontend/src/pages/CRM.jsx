@@ -54,17 +54,27 @@ const CRM = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 🧠 UPDATED SAVE LOGIC (Crash Proof)
   const handleSaveLead = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
       
+      // FIX: Sirf zaroori data nikalo aur Value ko number me convert karo taaki FastAPI gussa na ho
+      const cleanPayload = {
+        name: formData.name,
+        company: formData.company || "",
+        email: formData.email || "",
+        value: Number(formData.value) || 0,
+        status: formData.status
+      };
+
       if (editingId) {
-        await axios.put(`https://agency-saas-backend-2flg.onrender.com/api/v1/leads/${editingId}`, formData, {
+        await axios.put(`https://agency-saas-backend-2flg.onrender.com/api/v1/leads/${editingId}`, cleanPayload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', formData, {
+        await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', cleanPayload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -76,11 +86,23 @@ const CRM = () => {
       
     } catch (error) {
       console.error("Error saving lead:", error);
-      if (error.response && error.response.status === 401) {
-        alert("Session expired. Please login again to save lead.");
-        navigate('/auth');
+      
+      // Smart Error Alerts taaki exactly pata chale ki kya fasa hai
+      if (error.response) {
+        if (error.response.status === 401) {
+          alert("Session expired. Please login again.");
+          navigate('/auth');
+        } else if (error.response.status === 422) {
+          alert("Error (422): Form data format is invalid according to backend.");
+        } else if (error.response.status === 404) {
+          alert("Error (404): Update endpoint not found. Backend me PUT API missing hai!");
+        } else if (error.response.status === 405) {
+          alert("Error (405): Method Not Allowed. Check backend PUT routes.");
+        } else {
+          alert(`Failed to save lead. Status: ${error.response.status}`);
+        }
       } else {
-        alert("Failed to save lead. Please try again.");
+        alert("Network Error: Backend is down or unreachable.");
       }
     }
   };
@@ -111,7 +133,7 @@ const CRM = () => {
             size={18} 
             style={{ color: 'var(--text-muted)', cursor: 'pointer' }} 
             onClick={(e) => {
-              e.stopPropagation(); // 👈 BUG FIX: Click ko background tak jaane se roko
+              e.stopPropagation();
               setOpenDropdownId(openDropdownId === lead.id ? null : lead.id);
             }}
           />
@@ -121,7 +143,7 @@ const CRM = () => {
               <div 
                 style={{ padding: '10px 16px', fontSize: '14px', cursor: 'pointer', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}
                 onClick={(e) => {
-                  e.stopPropagation(); // 👈 BUG FIX: Yahan bhi click ko roko
+                  e.stopPropagation();
                   setFormData(lead); 
                   setEditingId(lead.id); 
                   setShowModal(true); 
@@ -214,7 +236,6 @@ const CRM = () => {
         </div>
       )}
 
-      {/* DYNAMIC MODAL (Add/Edit) */}
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={() => setShowModal(false)}>
           <div className="crm-modal-content" onClick={(e) => e.stopPropagation()}>
