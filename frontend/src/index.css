@@ -999,3 +999,156 @@ body {
     gap: 16px;
   }
 }
+/* =========================================
+   📱 AI RECEPTIONIST UI FIXES
+   ========================================= */
+
+.receptionist-container {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Heartbeat Animation for Mic */
+@keyframes heartbeat {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 70, 158, 0.4); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(40, 70, 158, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 70, 158, 0); }
+}
+
+.mic-pulse-wrapper {
+  width: 90px;
+  height: 90px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  animation: heartbeat 2s infinite;
+  color: white;
+}
+
+/* Grid Layout for Setup Boxes */
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.setup-box {
+  padding: 32px 24px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ChatGPT Style Chat Interface */
+.chat-interface-wrapper {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 70vh; /* Lamba chatbox */
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.chat-history {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Wrap Chips properly */
+.chat-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 24px 12px 24px;
+}
+
+.chat-chip {
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Bottom Input Area */
+.chat-input-area {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  background: white;
+}
+
+.chat-input-box {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 24px;
+  padding: 8px 16px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chat-input-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 8px 0;
+  font-size: 15px;
+  min-width: 0; /* Horizontal scroll yahi rokta hai */
+  color: var(--text-main);
+}
+
+.chat-icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* 📱 Mobile Specific Fixes */
+@media (max-width: 768px) {
+  .setup-grid {
+    display: flex;
+    flex-direction: column; /* Box 1 pehle, Box 2 baad me */
+    gap: 16px;
+  }
+  
+  .setup-box {
+    padding: 24px 16px; /* Side space kam karke choda banaya */
+  }
+
+  .chat-interface-wrapper {
+    height: 80vh; /* Mobile par aur bada area */
+  }
+
+  .chat-input-area {
+    padding: 12px 16px;
+  }
+  
+  .chat-chips-row {
+    padding: 0 16px 12px 16px;
+  }
+}
