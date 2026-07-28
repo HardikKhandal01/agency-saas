@@ -26,15 +26,17 @@ def create_lead(
     
     return db_lead
 
-@router.put("/{lead_id}")
+@router.put("/{lead_id}", response_model=LeadResponse)
 def update_lead(
     lead_id: int,
-    lead_in: schemas.LeadCreate, # 👈 Note: Jo schema tumhari POST request me (jaise LeadCreate) use hua hai, exact wahi yahan daalna
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+    lead_in: LeadCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    # 1. Purani lead dhoondho
-    lead = db.query(models.Lead).filter(models.Lead.id == lead_id, models.Lead.owner_id == current_user.id).first()
+    """Lead update karne ki API"""
+    
+    # 1. Purani lead dhoondho (sirf current user ki)
+    lead = db.query(Lead).filter(Lead.id == lead_id, Lead.owner_id == current_user.id).first()
     
     # Agar na mile toh 404 error
     if not lead:
