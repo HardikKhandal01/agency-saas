@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreHorizontal, Mail, Phone, X, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // 👈 401 handle karne ke liye
+import { Search, Plus, MoreHorizontal, Mail, Phone, X, Loader2, Edit2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; 
 import axios from 'axios';
 
 const CRM = () => {
@@ -9,6 +9,10 @@ const CRM = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   
+  // Naya State: Track karne ke liye ki konsa lead edit ho raha hai aur kiska menu open hai
+  const [editingId, setEditingId] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -21,17 +25,13 @@ const CRM = () => {
   const fetchLeads = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      
-      // Agar token hi nahi hai toh direct login par bhejo
       if (!token) {
         navigate('/auth');
         return;
       }
-
       const response = await axios.get('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       if (Array.isArray(response.data)) {
         setLeads(response.data);
       } else {
@@ -39,15 +39,12 @@ const CRM = () => {
       }
     } catch (error) {
       console.error("Error fetching leads:", error);
-      
-      // 🧠 SMART FIX for 401 Unauthorized
       if (error.response && error.response.status === 401) {
         alert("Your session has expired. Please login again.");
         localStorage.removeItem('access_token');
         localStorage.removeItem('isLoggedIn');
-        navigate('/auth'); // Wapas login page par bhej do
+        navigate('/auth');
       }
-      
       setLeads([]); 
     } finally {
       setLoading(false);
@@ -59,29 +56,46 @@ const CRM = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // API Call: Nayi Lead Create karna
-  const handleCreateLead = async (e) => {
+  // 🧠 API Call: Lead Create ya Update karna
+  const handleSaveLead = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
       
+      if (editingId) {
+        // UPDATE LEAD LOGIC (PUT Request)
+        await axios.put(`https://agency-saas-backend-2flg.onrender.com/api/v1/leads/${editingId}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        // CREATE NEW LEAD LOGIC (POST Request)
+        await axios.post('https://agency-saas-backend-2flg.onrender.com/api/v1/leads/', formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      // Form and Modal Reset
       setShowModal(false);
+      setEditingId(null);
       setFormData({ name: '', company: '', email: '', value: '', status: 'new' }); 
-      fetchLeads(); // Nayi list laao
+      fetchLeads(); // Nayi updated list laao
       
     } catch (error) {
-      console.error("Error creating lead:", error);
-      
+      console.error("Error saving lead:", error);
       if (error.response && error.response.status === 401) {
         alert("Session expired. Please login again to save lead.");
         navigate('/auth');
       } else {
-        alert("Failed to create lead. Check console for details.");
+        alert("Failed to save lead. Please try again.");
       }
     }
+  };
+
+  // Add Lead button par click karne par form fresh khulega
+  const handleAddNewClick = () => {
+    setFormData({ name: '', company: '', email: '', value: '', status: 'new' });
+    setEditingId(null);
+    setShowModal(true);
   };
 
   const safeLeads = Array.isArray(leads) ? leads : [];
@@ -98,7 +112,31 @@ const CRM = () => {
           <div style={{ fontWeight: '600', color: 'var(--text-main)', fontSize: '15px' }}>{lead.name}</div>
           <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>{lead.company || 'No Company'}</div>
         </div>
-        <MoreHorizontal size={18} style={{ color: 'var(--text-muted)', cursor: 'pointer' }} />
+        
+        {/* 3 Dots & Dropdown Menu */}
+        <div style={{ position: 'relative' }}>
+          <MoreHorizontal 
+            size={18} 
+            style={{ color: 'var(--text-muted)', cursor: 'pointer' }} 
+            onClick={() => setOpenDropdownId(openDropdownId === lead.id ? null : lead.id)}
+          />
+          
+          {openDropdownId === lead.id && (
+            <div style={{ position: 'absolute', right: 0, top: '24px', background: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
+              <div 
+                style={{ padding: '10px 16px', fontSize: '14px', cursor: 'pointer', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}
+                onClick={() => {
+                  setFormData(lead); // Pura data form me daal do
+                  setEditingId(lead.id); // Set karo ki edit mode hai
+                  setShowModal(true); // Modal khol do
+                  setOpenDropdownId(null); // Menu band kar do
+                }}
+              >
+                <Edit2 size={14} /> Edit Lead
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
@@ -120,7 +158,7 @@ const CRM = () => {
   return (
     <div className="crm-container">
       
-      {/* Header section (Now Mobile Responsive) */}
+      {/* Header section */}
       <div className="crm-header-top">
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-main)' }}>CRM & Leads</h1>
@@ -132,7 +170,7 @@ const CRM = () => {
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }} />
             <input type="text" placeholder="Search leads..." className="input-field crm-search-input" />
           </div>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }} onClick={() => setShowModal(true)}>
+          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }} onClick={handleAddNewClick}>
             <Plus size={18} /> Add Lead
           </button>
         </div>
@@ -143,8 +181,9 @@ const CRM = () => {
           <Loader2 className="animate-spin" size={32} style={{ color: 'var(--primary)' }} />
         </div>
       ) : (
-        /* Kanban Board (Stacks on Mobile) */
-        <div className="kanban-board">
+        /* Kanban Board */
+        <div className="kanban-board" onClick={() => setOpenDropdownId(null)}> 
+          {/* (Board pe kahin bhi click karne par dropdown band ho jayega) */}
           
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '12px' }}>
@@ -182,16 +221,18 @@ const CRM = () => {
         </div>
       )}
 
-      {/* ADD LEAD MODAL (Mobile Optimized) */}
+      {/* DYNAMIC MODAL (Add/Edit) */}
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
           <div className="crm-modal-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0 }}>Add New Lead</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0 }}>
+                {editingId ? 'Edit Lead Details' : 'Add New Lead'}
+              </h2>
               <X size={24} style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={() => setShowModal(false)} />
             </div>
 
-            <form onSubmit={handleCreateLead}>
+            <form onSubmit={handleSaveLead}>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-muted)' }}>Lead Name *</label>
                 <input type="text" className="input-field" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Rahul Sharma" style={{ width: '100%', boxSizing: 'border-box' }} />
@@ -224,7 +265,9 @@ const CRM = () => {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', fontWeight: '600', color: 'var(--text-muted)', cursor: 'pointer', padding: '10px 20px' }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ padding: '10px 24px', borderRadius: '100px' }}>Save Lead</button>
+                <button type="submit" className="btn-primary" style={{ padding: '10px 24px', borderRadius: '100px' }}>
+                  {editingId ? 'Update Lead' : 'Save Lead'}
+                </button>
               </div>
             </form>
           </div>
